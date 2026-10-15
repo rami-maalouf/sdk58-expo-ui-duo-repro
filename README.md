@@ -20,7 +20,7 @@ DEVELOPER_DIR=/Applications/Xcode-27.1.app/Contents/Developer npx expo run:ios -
 ```
 
 Then fold and unfold the simulator. I used the `hinge` command of serve-sim, which comes with
-`expo-device-hub` 0.15.3: `serve-sim hinge half -d "iPhone Duo"`, then `unfold` and `fold`.
+`expo-device-hub` 0.15.3: `serve-sim hinge half -d <simulator udid>`, then `unfold` and `fold`.
 
 On `main`: PRIMARY stays above SECONDARY, open, half open, or folded, and the counter stays at
 `onHingeChange events: 0`. The app does not show an error, Metro prints no warning, and the app's
