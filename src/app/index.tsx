@@ -1,98 +1,53 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { ArrangementView, Host, Text, VStack } from '@expo/ui/swift-ui';
+import {
+  arrangementViewStyle,
+  background,
+  font,
+  frame,
+  onHingeChange,
+  padding,
+} from '@expo/ui/swift-ui/modifiers';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+const fill = frame({ maxWidth: Infinity, maxHeight: Infinity });
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
-
+// on an iphone duo with ios 27.1: ArrangementView should show PRIMARY and SECONDARY side by side
+// when the duo is open, and onHingeChange should count events as the duo folds and unfolds.
 export default function HomeScreen() {
+  const [events, setEvents] = useState(0);
+  const [last, setLast] = useState('no event yet');
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <Host style={{ flex: 1 }}>
+      <VStack
+        spacing={0}
+        modifiers={[
+          fill,
+          onHingeChange((_, newContext) => {
+            setEvents((count) => count + 1);
+            setLast(
+              newContext.hinge
+                ? `${Math.round(newContext.hinge.angle)}° ${newContext.hinge.status}`
+                : 'hinge is null'
+            );
+          }),
+        ]}>
+        <Text modifiers={[font({ size: 22, weight: 'bold' }), padding({ all: 16 })]}>
+          {`onHingeChange events: ${events} (last: ${last})`}
+        </Text>
+        <ArrangementView modifiers={[arrangementViewStyle('split'), fill]}>
+          <ArrangementView.Primary>
+            <Text modifiers={[font({ size: 40, weight: 'bold' }), fill, background('#ffc9c9')]}>
+              PRIMARY
+            </Text>
+          </ArrangementView.Primary>
+          <ArrangementView.Secondary>
+            <Text modifiers={[font({ size: 40, weight: 'bold' }), fill, background('#a5d8ff')]}>
+              SECONDARY
+            </Text>
+          </ArrangementView.Secondary>
+        </ArrangementView>
+      </VStack>
+    </Host>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
